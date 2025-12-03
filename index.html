@@ -935,11 +935,14 @@
             // Função para atualizar UI do usuário
             function updateUserUI(user) {
                 if (user) {
+                    // Verificar se é admin
+                    isAdminUser = ADMIN_EMAILS.includes(user.email);
+                    
                     // Usuário logado
                     app.auth.loginBtn.classList.add('hidden');
                     app.auth.userInfo.classList.remove('hidden');
                     app.auth.userPhoto.src = user.photoURL || 'https://via.placeholder.com/32';
-                    app.auth.userName.textContent = user.displayName || 'Usuário';
+                    app.auth.userName.textContent = (user.displayName || 'Usuário') + (isAdminUser ? ' 👑' : '');
                     
                     // Atualizar botões no modal de configurações
                     if (app.settings.googleLoginBtn) {
@@ -972,6 +975,10 @@
             // --- SISTEMA DE ASSINATURA ---
             const REQUIRE_LOGIN = true; // Ativar login obrigatório
             const TRIAL_DAYS = 30; // Dias de teste gratuito
+            
+            // --- SISTEMA DE ADMINISTRADOR ---
+            const ADMIN_EMAILS = ['leandroalves.facilities@gmail.com']; // Emails que são admin
+            let isAdminUser = false; // Flag para identificar se é admin
             
             // Verificar status da assinatura
             async function checkSubscription(userId) {
@@ -1105,7 +1112,14 @@
                     }
                     console.log('🔐 Usuário logado:', currentUser.email);
                     
-                    // Verificar assinatura
+                    // Verificar se é ADMIN - se for, liberar acesso imediatamente
+                    if (isAdminUser) {
+                        console.log('👑 Usuário ADMIN detectado - acesso total liberado sem verificação de assinatura');
+                        showApp();
+                        return true;
+                    }
+                    
+                    // Verificar assinatura (apenas para não-admins)
                     console.log('🔐 Chamando checkSubscription...');
                     const subscription = await checkSubscription(currentUser.uid);
                     console.log('🔐 checkSubscription retornou:', subscription);
